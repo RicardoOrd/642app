@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>642 APP — Clientes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar"></div>
+  <div class="main-content">
+    <div id="topbar"></div>
+    <div class="page-body">
+
+      <div class="toolbar">
+        <div class="search-box">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Buscar cliente...">
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-primary" id="btnNuevo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo cliente
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Reservas</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nuevo cliente</h2>
+      <button class="modal-close" onclick="UI.closeModal('modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" id="fNombre">
+          <span class="field-error" id="eNombre"></span>
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="fTel" placeholder="644-000-0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="fEmail" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="fNotas" placeholder="Notas adicionales..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="UI.closeModal('modal')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initPage('clientes', 'Clientes');
+
+  function render(filter = '') {
+    const data = DB.all('clientes').filter(c =>
+      !filter || c.nombre.toLowerCase().includes(filter.toLowerCase()) ||
+      (c.email||'').toLowerCase().includes(filter.toLowerCase())
+    );
+    const reservas = DB.all('reservas');
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = data.length ? data.map(c => {
+      const nRes = reservas.filter(r => r.clienteId === c.id).length;
+      return `<tr>
+        <td><strong>${c.nombre}</strong></td>
+        <td>${c.telefono||'—'}</td>
+        <td>${c.email||'—'}</td>
+        <td><span class="badge badge-blue">${nRes} reserva${nRes!==1?'s':''}</span></td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888">${c.notas||'—'}</td>
+        <td><div class="table-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editCliente(${c.id})">Editar</button>
+          <button class="btn btn-danger btn-sm"    onclick="delCliente(${c.id})">Eliminar</button>
+        </div></td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="6"><div class="empty-state"><p>Sin clientes registrados</p>
+      <button class="btn btn-primary" onclick="UI.openModal('modal')">Agregar primer cliente</button></div></td></tr>`;
+  }
+
+  render();
+  document.getElementById('searchInput').addEventListener('input', e => render(e.target.value));
+
+  document.getElementById('btnNuevo').addEventListener('click', () => {
+    document.getElementById('editId').value = '';
+    document.getElementById('modalTitle').textContent = 'Nuevo cliente';
+    UI.clearForm('modal');
+    UI.openModal('modal');
+  });
+
+  document.getElementById('btnGuardar').addEventListener('click', () => {
+    UI.clearErrors(['fNombre']);
+    const nombre = UI.val('fNombre');
+    if (!nombre) { UI.markError('fNombre','eNombre','El nombre es requerido'); return; }
+    const id = parseInt(document.getElementById('editId').value);
+    const data = { nombre, telefono: UI.val('fTel'), email: UI.val('fEmail'), notas: UI.val('fNotas') };
+    if (id) { DB.update('clientes', id, data); UI.toast('Cliente actualizado','','success'); }
+    else    { DB.insert('clientes', data);     UI.toast('Cliente agregado','','success'); }
+    UI.closeModal('modal');
+    render(document.getElementById('searchInput').value);
+  });
+
+  window.editCliente = id => {
+    const c = DB.find('clientes', id);
+    document.getElementById('editId').value = id;
+    document.getElementById('modalTitle').textContent = 'Editar cliente';
+    UI.setVal('fNombre', c.nombre); UI.setVal('fTel', c.telefono||'');
+    UI.setVal('fEmail', c.email||''); UI.setVal('fNotas', c.notas||'');
+    UI.openModal('modal');
+  };
+
+  window.delCliente = id => {
+    const c = DB.find('clientes', id);
+    UI.confirm(`¿Eliminar a "${c.nombre}"? Esta acción no se puede deshacer.`, () => {
+      DB.remove('clientes', id);
+      render(document.getElementById('searchInput').value);
+      UI.toast('Cliente eliminado','','info');
+    });
+  };
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>642 APP — Reservas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .view-tabs { display:flex; gap:0; margin-bottom:16px; border:1px solid #e0e0e0; width:fit-content; }
+    .view-tab  { padding:7px 18px; font-size:13px; font-weight:500; background:#eee; border:none; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+    .view-tab.active { background:#ddd; font-weight:600; }
+    .view-tab + .view-tab { border-left:1px solid #e0e0e0; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar"></div>
+  <div class="main-content">
+    <div id="topbar"></div>
+    <div class="page-body">
+
+      <div class="toolbar">
+        <div class="view-tabs">
+          <button class="view-tab active" id="tabCalendario" onclick="setView('calendario')">Calendario</button>
+          <button class="view-tab"        id="tabLista"      onclick="setView('lista')">Lista</button>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-primary" id="btnNueva">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva reserva
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista Calendario -->
+      <div id="vistaCalendario" class="card">
+        <div class="calendar-header">
+          <button class="cal-nav" id="prevMonth">&#8249;</button>
+          <h3 id="calTitle"></h3>
+          <button class="cal-nav" id="nextMonth">&#8250;</button>
+        </div>
+        <div class="calendar-grid">
+          <div class="cal-days-header">
+            <div class="cal-day-name">Dom</div><div class="cal-day-name">Lun</div>
+            <div class="cal-day-name">Mar</div><div class="cal-day-name">Mié</div>
+            <div class="cal-day-name">Jue</div><div class="cal-day-name">Vie</div>
+            <div class="cal-day-name">Sáb</div>
+          </div>
+          <div class="cal-body" id="calBody"></div>
+        </div>
+      </div>
+
+      <!-- Vista Lista -->
+      <div id="vistaLista" class="card" style="display:none">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Duración</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="tbodyLista"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Reserva -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nueva reserva</h2>
+      <button class="modal-close" onclick="UI.closeModal('modal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="fCliente"><option value="">Selecciona un cliente...</option></select>
+        <span class="field-error" id="eCliente"></span>
+      </div>
+      <div class="form-group">
+        <label>Servicio *</label>
+        <select id="fServicio">
+          <option value="">Selecciona servicio...</option>
+          <option>Sesión retrato</option>
+          <option>Sesión familiar</option>
+          <option>Sesión producto</option>
+          <option>Sesión quinceañera</option>
+          <option>Sesión boda</option>
+          <option>Sesión corporativa</option>
+          <option>Otro</option>
+        </select>
+        <span class="field-error" id="eServicio"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" id="fFecha">
+          <span class="field-error" id="eFecha"></span>
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="fHora" value="10:00">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Duración (hrs)</label>
+          <input type="number" id="fDuracion" value="2" min="1" max="12">
+        </div>
+        <div class="form-group">
+          <label>Precio ($)</label>
+          <input type="number" id="fPrecio" placeholder="0.00" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="fEstado">
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="UI.closeModal('modal')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initPage('reservas', 'Reservas');
+
+  let currentDate = new Date();
+  let view = 'calendario';
+
+  const ESTADOS = { confirmada:'badge-green', pendiente:'badge-orange', completada:'badge-gray', cancelada:'badge-red' };
+
+  function setView(v) {
+    view = v;
+    document.getElementById('tabCalendario').classList.toggle('active', v==='calendario');
+    document.getElementById('tabLista').classList.toggle('active', v==='lista');
+    document.getElementById('vistaCalendario').style.display = v==='calendario' ? '' : 'none';
+    document.getElementById('vistaLista').style.display      = v==='lista'      ? '' : 'none';
+    if (v==='lista') renderLista();
+    else renderCalendar();
+  }
+  window.setView = setView;
+
+  /* ── CALENDAR ── */
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function renderCalendar() {
+    const y = currentDate.getFullYear(), m = currentDate.getMonth();
+    document.getElementById('calTitle').textContent = `${MESES[m]} ${y}`;
+    const reservas = DB.all('reservas');
+    const first = new Date(y, m, 1);
+    const startDay = first.getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+    let html = '';
+    let day = 1 - startDay;
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(y, m, day);
+      const iso  = date.toISOString().split('T')[0];
+      const isCurrentMonth = date.getMonth() === m;
+      const isToday = iso === today;
+      const dayReservations = reservas.filter(r => r.fecha === iso);
+      html += `<div class="cal-cell ${!isCurrentMonth?'other-month':''} ${isToday?'today':''}" onclick="openModalDate('${iso}')">
+        <div class="cal-date">${date.getDate()}</div>
+        ${dayReservations.slice(0,2).map(r => `<div class="cal-event ${r.estado}" title="${r.clienteNombre}">${r.hora} ${r.clienteNombre.split(' ')[0]}</div>`).join('')}
+        ${dayReservations.length>2?`<div style="font-size:10px;color:#888">+${dayReservations.length-2} más</div>`:''}
+      </div>`;
+      day++;
+    }
+    document.getElementById('calBody').innerHTML = html;
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); });
+  document.getElementById('nextMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); });
+
+  /* ── LISTA ── */
+  function renderLista() {
+    const data = DB.all('reservas').sort((a,b) => b.fecha.localeCompare(a.fecha));
+    document.getElementById('tbodyLista').innerHTML = data.length ? data.map(r => `<tr>
+      <td><strong>${r.clienteNombre}</strong></td>
+      <td>${r.servicio}</td>
+      <td>${UI.fmtDate(r.fecha)}</td>
+      <td>${r.hora}</td>
+      <td>${r.duracion} hr${r.duracion>1?'s':''}</td>
+      <td>${UI.fmtCurrency(r.precio||0)}</td>
+      <td><span class="badge ${ESTADOS[r.estado]||'badge-gray'}">${r.estado}</span></td>
+      <td><div class="table-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editReserva(${r.id})">Editar</button>
+        <button class="btn btn-danger btn-sm"    onclick="delReserva(${r.id})">Eliminar</button>
+      </div></td>
+    </tr>`).join('') : `<tr><td colspan="8"><div class="empty-state"><p>Sin reservas</p></div></td></tr>`;
+  }
+
+  /* ── MODAL ── */
+  function loadClientes() {
+    const sel = document.getElementById('fCliente');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Selecciona un cliente...</option>' +
+      DB.all('clientes').map(c => `<option value="${c.id}" data-nombre="${c.nombre}">${c.nombre}</option>`).join('');
+    if (current) sel.value = current;
+  }
+
+  function openNew(fecha = '') {
+    document.getElementById('editId').value = '';
+    document.getElementById('modalTitle').textContent = 'Nueva reserva';
+    UI.clearForm('modal');
+    loadClientes();
+    if (fecha) document.getElementById('fFecha').value = fecha;
+    UI.openModal('modal');
+  }
+  window.openModalDate = fecha => openNew(fecha);
+
+  document.getElementById('btnNueva').addEventListener('click', () => openNew());
+
+  window.editReserva = id => {
+    const r = DB.find('reservas', id);
+    document.getElementById('editId').value = id;
+    document.getElementById('modalTitle').textContent = 'Editar reserva';
+    loadClientes();
+    UI.setVal('fCliente', r.clienteId); UI.setVal('fServicio', r.servicio);
+    UI.setVal('fFecha', r.fecha); UI.setVal('fHora', r.hora);
+    UI.setVal('fDuracion', r.duracion); UI.setVal('fPrecio', r.precio);
+    UI.setVal('fEstado', r.estado);
+    UI.openModal('modal');
+  };
+
+  document.getElementById('btnGuardar').addEventListener('click', () => {
+    UI.clearErrors(['fCliente','fServicio','fFecha']);
+    const clienteId = parseInt(UI.val('fCliente'));
+    const servicio  = UI.val('fServicio');
+    const fecha     = UI.val('fFecha');
+    let ok = true;
+    if (!clienteId) { UI.markError('fCliente','eCliente','Selecciona un cliente'); ok=false; }
+    if (!servicio)  { UI.markError('fServicio','eServicio','Selecciona un servicio'); ok=false; }
+    if (!fecha)     { UI.markError('fFecha','eFecha','Selecciona una fecha'); ok=false; }
+    if (!ok) return;
+
+    const sel = document.getElementById('fCliente');
+    const clienteNombre = sel.options[sel.selectedIndex].dataset.nombre;
+    const data = { clienteId, clienteNombre, servicio, fecha, hora: UI.val('fHora'), duracion: parseInt(UI.val('fDuracion'))||2, precio: parseFloat(UI.val('fPrecio'))||0, estado: UI.val('fEstado')||'pendiente', fotógrafo: Auth.getSession().username };
+    const id = parseInt(document.getElementById('editId').value);
+    if (id) { DB.update('reservas', id, data); UI.toast('Reserva actualizada','','success'); }
+    else    { DB.insert('reservas', data);     UI.toast('Reserva creada','','success'); }
+    UI.closeModal('modal');
+    renderCalendar(); renderLista();
+  });
+
+  window.delReserva = id => {
+    const r = DB.find('reservas', id);
+    UI.confirm(`¿Eliminar la reserva de "${r.clienteNombre}"?`, () => {
+      DB.remove('reservas', id);
+      renderLista(); renderCalendar();
+      UI.toast('Reserva eliminada','','info');
+    });
+  };
+
+  renderCalendar();
+});
+</script>
+</body>
+</html>

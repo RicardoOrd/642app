@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>642 APP — Iniciar Sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Izquierda -->
+  <div class="login-left">
+    <div class="logo">
+      <span class="logo-box"><strong>6</strong><span class="slash">/</span><strong>42</strong></span>
+      <span class="logo-word">APP</span>
+    </div>
+    <p>Un sistema integral de gestión empresarial para tu compañía. Gestiona clientes, inventario, reservas y facturación en un solo lugar.</p>
+  </div>
+
+  <div class="login-divider"></div>
+
+  <!-- Derecha -->
+  <div class="login-right">
+    <h1 id="rightTitle">Bienvenido</h1>
+    <p class="login-subtitle" id="rightSub">Inicia sesion o crea una cuenta para continuar</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabLogin">Iniciar sesion</button>
+      <button class="tab-btn"        id="tabReg">Registrarse</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-section" id="fLogin">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" id="iUser" autocomplete="username">
+        <span class="field-error" id="errUser"></span>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div class="pass-wrap">
+          <input type="password" id="iPass" autocomplete="current-password">
+          <button type="button" class="toggle-pass">
+            <svg class="eye-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:flex"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-shut" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <span class="field-error" id="errPass"></span>
+      </div>
+      <button class="btn-submit" id="btnLogin">Iniciar sesión <span class="btn-spinner"></span></button>
+      <div class="form-footer">
+        <button type="button" class="link-btn">¿Olvidaste tu contraseña?</button>
+      </div>
+      <div class="demo-hint">
+        <strong>ACCESO DE PRUEBA</strong><br>
+        Usuario: <code>admin</code> &nbsp;|&nbsp; Contraseña: <code>admin123</code>
+      </div>
+    </div>
+
+    <!-- REGISTRO -->
+    <div class="form-section hidden" id="fReg">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="rNombre" placeholder="Ej. Juan Pérez">
+        <span class="field-error" id="errNombre"></span>
+      </div>
+      <div class="form-group">
+        <label>Nombre de usuario</label>
+        <input type="text" id="rUser" autocomplete="username" placeholder="Ej. jperez">
+        <span class="field-error" id="errRUser"></span>
+      </div>
+      <div class="form-group">
+        <label>Rol</label>
+        <select id="rRol">
+          <option value="Fotógrafo">Fotógrafo</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Recepcionista">Recepcionista</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div class="pass-wrap">
+          <input type="password" id="rPass" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="toggle-pass">
+            <svg class="eye-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:flex"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-shut" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <div class="strength-bar"><span></span><span></span><span></span><span></span></div>
+        <div class="strength-label" id="strengthLabel"></div>
+        <span class="field-error" id="errRPass"></span>
+      </div>
+      <div class="form-group">
+        <label>Confirmar contraseña</label>
+        <div class="pass-wrap">
+          <input type="password" id="rPass2" autocomplete="new-password">
+          <button type="button" class="toggle-pass">
+            <svg class="eye-open" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:flex"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-shut" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <span class="field-error" id="errRPass2"></span>
+      </div>
+      <button class="btn-submit" id="btnReg">Crear cuenta <span class="btn-spinner"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-body" id="toastBody"></div></div>
+
+<script src="js/app.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>642 APP — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar"></div>
+  <div class="main-content">
+    <div id="topbar"></div>
+    <div class="page-body" id="pageBody">
+
+      <!-- Métricas -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total Clientes <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div class="metric-value" id="mClientes">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Elementos Inventario <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+          <div class="metric-value" id="mInventario">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Reservas Activas <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="metric-value" id="mReservas">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Facturas Pendientes <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="metric-value" id="mFacturas">—</div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-title">Resumen de Ingresos</div>
+          <div class="card-sub">Ingresos mensuales del año actual</div>
+          <canvas id="lineChart" height="160"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Estado del Inventario</div>
+          <div class="card-sub">Niveles actuales de stock por producto</div>
+          <canvas id="barChart" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- Próximas reservas -->
+      <div class="card mt-24">
+        <div class="card-title">Próximas Reservas</div>
+        <div class="card-sub">Sesiones agendadas en los próximos días</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr></thead>
+            <tbody id="tbReservas"><tr><td colspan="5" style="text-align:center;color:#888;padding:24px">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initPage('dashboard', 'Dashboard');
+
+  document.getElementById('mClientes').textContent  = DB.all('clientes').length;
+  document.getElementById('mInventario').textContent = DB.all('inventario').length;
+  document.getElementById('mReservas').textContent  = DB.all('reservas').filter(r => r.estado !== 'cancelada' && r.estado !== 'completada').length;
+  document.getElementById('mFacturas').textContent  = DB.all('facturas').filter(f => f.estado === 'pendiente').length;
+
+  const estadoBadge = e => {
+    const map = { confirmada:'badge-green', pendiente:'badge-orange', completada:'badge-gray', cancelada:'badge-red' };
+    return `<span class="badge ${map[e]||'badge-gray'}">${e}</span>`;
+  };
+
+  const reservas = DB.all('reservas').filter(r => r.estado !== 'cancelada').sort((a,b) => a.fecha.localeCompare(b.fecha)).slice(0,5);
+  const tb = document.getElementById('tbReservas');
+  tb.innerHTML = reservas.length
+    ? reservas.map(r => `<tr><td>${r.clienteNombre}</td><td>${r.servicio}</td><td>${UI.fmtDate(r.fecha)}</td><td>${r.hora}</td><td>${estadoBadge(r.estado)}</td></tr>`).join('')
+    : `<tr><td colspan="5" style="text-align:center;color:#888;padding:24px">Sin reservas próximas</td></tr>`;
+
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+      datasets: [{ data: [1200,2800,9800,6500,4200,3800], borderColor:'#111', borderWidth:2, backgroundColor:'rgba(0,0,0,0.07)', fill:true, tension:0.45, pointRadius:3, pointBackgroundColor:'#111' }]
+    },
+    options: { plugins:{ legend:{display:false} }, scales: { x:{grid:{display:false},ticks:{font:{size:10,family:'Inter'},color:'#888'}}, y:{grid:{color:'#f2f2f2'},ticks:{font:{size:10,family:'Inter'},color:'#888'},beginAtZero:true} } }
+  });
+
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: DB.all('inventario').map(p=>p.nombre.substring(0,12)),
+      datasets: [{ data: DB.all('inventario').map(p=>p.stock), backgroundColor:'#bbb', borderWidth:0 }]
+    },
+    options: { plugins:{legend:{display:false}}, scales: { x:{grid:{display:false},ticks:{font:{size:10,family:'Inter'},color:'#888'}}, y:{grid:{color:'#f2f2f2'},ticks:{font:{size:10,family:'Inter'},color:'#888'},beginAtZero:true} } }
+  });
+});
+</script>
+</body>
+</html>
