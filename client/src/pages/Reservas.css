@@ -1,0 +1,96 @@
+.view-tabs {
+  display: flex;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.view-tab {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  background: #f5f5f5;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #888;
+}
+.view-tab + .view-tab { border-left: 1px solid #e0e0e0; }
+.view-tab.active { background: #111; color: #fff; }
+
+.calendar-card { border-radius: 14px; }
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.calendar-header h3 { font-size: 16px; font-weight: 600; }
+.cal-nav {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+}
+.cal-nav:hover { background: #f5f5f5; }
+
+.cal-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #fafafa;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #eee;
+  border-bottom: none;
+}
+.cal-day-name {
+  padding: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cal-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid #eee;
+}
+.cal-cell {
+  min-height: 85px;
+  padding: 6px 8px;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell:hover { background: #f9f9ff; }
+.cal-cell.other-month .cal-date { color: #ddd; }
+.cal-cell.today { background: #f5f3ff; }
+.cal-cell.today .cal-date { font-weight: 700; color: #6366f1; }
+.cal-date { font-size: 13px; color: #666; margin-bottom: 4px; }
+
+.cal-event {
+  font-size: 10px;
+  padding: 2px 6px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cal-event.confirmada { background: #dcfce7; color: #15803d; }
+.cal-event.pendiente  { background: #fef3c7; color: #b45309; }
+.cal-event.completada { background: #f3f4f6; color: #6b7280; }
+.cal-event.cancelada  { background: #fee2e2; color: #dc2626; }
+
+.cal-more { font-size: 10px; color: #888; }
